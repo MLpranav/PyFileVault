@@ -1,4 +1,4 @@
-import base64, hashlib, os, cryptography
+import base64, hashlib, os, cryptography, webbrowser
 from cryptography.fernet import Fernet
 import tkinter as tk
 from tkinter import filedialog as fd
@@ -7,6 +7,9 @@ from tkinter import messagebox as mb
 
 if not os.path.exists(os.getenv('APPDATA')+'\\PyFileVaultTemp'): os.mkdir(os.getenv('APPDATA')+'\\PyFileVaultTemp')
 tdir = os.getenv('APPDATA')+'\\PyFileVaultTemp'
+
+def open_url(url):
+   webbrowser.open_new_tab(url)
 
 def resource_path(relative_path):    
     try:       
@@ -102,8 +105,9 @@ button4.grid(row=2, column=2, padx=5, pady=5)
 button5=tk.Button(root, text="Preview Files", command=lambda:pyv_handler(5), width=20, state="disabled")
 button5.grid(row=3, column=1, columnspan=2, padx=5, pady=5)
 
-label7=tk.Label(text="PyFileVault 1.0 by DinVyapari™")
-label7.grid(row=4, column=1, columnspan=2, padx=5, pady=5)
+label7=tk.Label(text="PyFileVault 1.0 by DinVyapari™", fg="blue", cursor="hand2", font= ('SegoeUI 10 underline'))
+label7.grid(row=4, column=1, columnspan=2, padx=5, pady=4)
+label7.bind("<Button-1>", lambda e:open_url("https://github.com/DinVyapari"))
 
 root.grid_columnconfigure(1, weight=1)
 root.grid_columnconfigure(2, weight=1)
