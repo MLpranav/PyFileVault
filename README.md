@@ -1,7 +1,8 @@
 # PyFileVault
 
 ### A secure, cryptographic utility for encrypting your confidential data.
-Encryption is completely offline and zero-knowledge. Encrypted files are portable.
+Encryption is completely offline and zero-knowledge. Encrypted files are portable.<br>
+Original files will be deleted on encryption, be careful!
 
 ![This is an image](GUI.jpg)
 
