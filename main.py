@@ -1,5 +1,5 @@
-import os
-import cryptography as crypt
+import base64, hashlib, os, cryptography
+from cryptography.fernet import Fernet
 import tkinter as tk
 from tkinter import filedialog as fd
 from tkinter import simpledialog as sd
@@ -16,10 +16,22 @@ def pyv_handler(task):
         filez = list(getfilez())
     elif task==3 or task==4:
         filez = [os.path.join(dp, f) for dp, dn, fn in os.walk(getfilez(1)) for f in fn]
-        if len(filez)==0: mb.showinfo("Error", "Folder is empty!")
-    if filez: key = sd.askstring("Secret Key", "Enter Secret Key:", show='*', parent=root)
-    if key:
-        print(filez, key)
+        if len(filez)==0: mb.showerror("Error", "Folder is empty!")
+    if filez:
+        key = sd.askstring("Secret Key", "Enter Secret Key:", show='*', parent=root)
+        if task==1 or task==3: key2 = sd.askstring("Secret Key Confirmation", "Enter Secret Key Again:", show='*', parent=root)
+        else: key2 = key
+        if key and key==key2:
+            key = hashlib.md5(key).hexdigest()
+            key = base64.urlsafe_b64encode(key)
+            if task==1 or task==3:
+                pyv_enc(filez, key)
+            elif task==2 or task==4:
+                pyv_dec(filez, key)
+            elif task==5:
+                pyv_prev(filez, key)
+        else:
+            mb.showerror("Error", "Keys did not match!")
     
 def getfilez(folder=0):
     if folder:
@@ -29,14 +41,32 @@ def getfilez(folder=0):
     return(filez)
 
 def pyv_enc(filez, key):
-    pass
+    fernet = Fernet(key)
+    for i in filez:
+        with open(i, 'rb+') as file: original = file.read()
+        encrypted = fernet.encrypt(original)
+        with open(i, 'wb+') as file: file.write(encrypted)
+        os.replace(i, f"{i}.pyfv")
+    mb.showinfo("PyFileVault", "Encryption complete.")
 
 def pyv_dec(filez, key):
-        pass
+    fernet = Fernet(key)
+    for i in filez:
+        if i[-5:]==".pyfv":
+            with open(i, 'rb+') as file: original = file.read()
+            try:
+                decrypted = fernet.decrypt(original)
+                with open(i, 'wb+') as file: file.write(decrypted)
+                os.replace(i, i[:-5])
+            except cryptography.fernet.InvalidToken:
+                mb.showerror("Error", "Invalid key!")
+        elif len(filez)==1:
+            mb.showerror("Error", "Only .pyfv files can by decrypted.")
+    mb.showinfo("PyFileVault", "Decryption complete.")
 
 def pyv_prev(filez, key):
-    #give temp name to file and decrypt to temp, then launch
-    pass
+    fernet = Fernet(key)
+    #give temp name to file and decrypt to tdir/timestamp, open folder and popup to delete files on closing
 
 def on_closing():
     root.destroy()
