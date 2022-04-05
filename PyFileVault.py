@@ -30,8 +30,8 @@ def pyv_handler(task):
         if task==1 or task==3: key2 = sd.askstring("Secret Key Confirmation", "Enter Secret Key Again:", show='*', parent=root)
         else: key2 = key
         if key and key==key2:
-            key = hashlib.md5(key).hexdigest()
-            key = base64.urlsafe_b64encode(key)
+            key = hashlib.md5(key.encode('utf-8')).hexdigest()
+            key = base64.urlsafe_b64encode(key.encode('utf-8'))
             if task==1 or task==3:
                 pyv_enc(filez, key)
             elif task==2 or task==4:
@@ -99,7 +99,7 @@ button3.grid(row=2, column=1, padx=5, pady=5)
 button4=tk.Button(root, text="Decrypt Folder", command=lambda:pyv_handler(4), width=20)
 button4.grid(row=2, column=2, padx=5, pady=5)
 
-button5=tk.Button(root, text="Preview Files", command=lambda:pyv_handler(5), width=20)
+button5=tk.Button(root, text="Preview Files", command=lambda:pyv_handler(5), width=20, state="disabled")
 button5.grid(row=3, column=1, columnspan=2, padx=5, pady=5)
 
 label7=tk.Label(text="PyFileVault 1.0 by DinVyapari™")
