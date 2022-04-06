@@ -1,5 +1,10 @@
-import base64, hashlib, os, cryptography, webbrowser
-from cryptography.fernet import Fernet
+import os, webbrowser, secrets
+
+import cryptography
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 import tkinter as tk
 from tkinter import filedialog as fd
 from tkinter import simpledialog as sd
@@ -11,16 +16,12 @@ tdir = os.getenv('APPDATA')+'\\PyFileVaultTemp'
 def open_url(url):
    webbrowser.open_new_tab(url)
 
-def resource_path(relative_path):    
-    try:       
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
+def resource_path(relative_path):
+    try: base_path = sys._MEIPASS
+    except Exception: base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
 def pyv_handler(task):
-    global filez, key
     filez = []
     key = ""
     if task==1 or task==2 or task==5:
@@ -29,12 +30,10 @@ def pyv_handler(task):
         filez = [os.path.join(dp, f) for dp, dn, fn in os.walk(getfilez(1)) for f in fn]
         if len(filez)==0: mb.showerror("Error", "Folder is empty!")
     if filez:
-        key = sd.askstring("Secret Key", "Enter Secret Key:", show='*', parent=root)
+        key = sd.askstring("Enter Secret Key", "Key should have more than 8 characters.", show='*', parent=root)
         if task==1 or task==3: key2 = sd.askstring("Secret Key Confirmation", "Enter Secret Key Again:", show='*', parent=root)
         else: key2 = key
-        if key and key==key2:
-            key = hashlib.md5(key.encode('utf-8')).hexdigest()
-            key = base64.urlsafe_b64encode(key.encode('utf-8'))
+        if key and key==key2 and len(key)>8:
             if task==1 or task==3:
                 pyv_enc(filez, key)
             elif task==2 or task==4:
@@ -42,7 +41,7 @@ def pyv_handler(task):
             elif task==5:
                 pyv_prev(filez, key)
         else:
-            mb.showerror("Error", "Keys did not match!")
+            mb.showerror("Error", "Key is too short or inputs do not match!")
     
 def getfilez(folder=0):
     if folder:
@@ -52,31 +51,34 @@ def getfilez(folder=0):
     return(filez)
 
 def pyv_enc(filez, key):
-    fernet = Fernet(key)
     for i in filez:
         with open(i, 'rb+') as file: original = file.read()
-        encrypted = fernet.encrypt(original)
-        with open(i, 'wb+') as file: file.write(encrypted)
-        os.replace(i, f"{i}.pyfv")
+        nonce = secrets.token_bytes(12)
+        salt = secrets.token_bytes(32)
+        key2 = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=390000).derive(key.encode("utf-8"))
+        encrypted = nonce + AESGCM(key2).encrypt(nonce, original, b"") + salt
+        with open(f"{i}.pyfv", 'wb+') as file: file.write(encrypted)
+        os.remove(i)
     mb.showinfo("PyFileVault", "Encryption complete.")
 
 def pyv_dec(filez, key):
-    fernet = Fernet(key)
     for i in filez:
         if i[-5:]==".pyfv":
             with open(i, 'rb+') as file: original = file.read()
             try:
-                decrypted = fernet.decrypt(original)
-                with open(i, 'wb+') as file: file.write(decrypted)
-                os.replace(i, i[:-5])
-            except cryptography.fernet.InvalidToken:
-                mb.showerror("Error", "Invalid key!")
-        elif len(filez)==1:
-            mb.showerror("Error", "Only .pyfv files can by decrypted.")
-    mb.showinfo("PyFileVault", "Decryption complete.")
+                key2 = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=original[-32:], iterations=390000).derive(key.encode("utf-8"))
+                decrypted = AESGCM(key2).decrypt(original[:12], original[12:-32], b"")
+                with open(i[:-5], 'wb+') as file: file.write(decrypted)
+                os.remove(i)
+            except cryptography.exceptions.InvalidTag:
+                mb.showerror("Error", f"{i} - Invalid key or file!")
+    if len(filez)==1 and filez[0][-5:]!=".pyfv":
+        mb.showerror("Error", "Only .pyfv files can by decrypted.")
+    else:
+        mb.showinfo("PyFileVault", "Decryption complete.")
 
 def pyv_prev(filez, key):
-    fernet = Fernet(key)
+    pass
     #give temp name to file and decrypt to tdir/timestamp, open folder and popup to delete files on closing
 
 def on_closing():
@@ -105,7 +107,7 @@ button4.grid(row=2, column=2, padx=5, pady=5)
 button5=tk.Button(root, text="Preview Files", command=lambda:pyv_handler(5), width=20, state="disabled")
 button5.grid(row=3, column=1, columnspan=2, padx=5, pady=5)
 
-label7=tk.Label(text="PyFileVault 1.0 by DinVyapari™", fg="blue", cursor="hand2", font= ('SegoeUI 10 underline'))
+label7=tk.Label(text="PyFileVault v2.0 by DinVyapari™", fg="blue", cursor="hand2", font= ('SegoeUI 10 underline'))
 label7.grid(row=4, column=1, columnspan=2, padx=5, pady=4)
 label7.bind("<Button-1>", lambda e:open_url("https://github.com/DinVyapari"))
 
