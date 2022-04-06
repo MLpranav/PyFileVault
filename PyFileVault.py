@@ -52,13 +52,14 @@ def getfilez(folder=0):
 
 def pyv_enc(filez, key):
     for i in filez:
-        with open(i, 'rb+') as file: original = file.read()
-        nonce = secrets.token_bytes(12)
-        salt = secrets.token_bytes(32)
-        key2 = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=390000).derive(key.encode("utf-8"))
-        encrypted = nonce + AESGCM(key2).encrypt(nonce, original, b"") + salt
-        with open(f"{i}.pyfv", 'wb+') as file: file.write(encrypted)
-        os.remove(i)
+        if i[-5:]!=".pyfv":
+            with open(i, 'rb+') as file: original = file.read()
+            nonce = secrets.token_bytes(12)
+            salt = secrets.token_bytes(32)
+            key2 = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=390000).derive(key.encode("utf-8"))
+            encrypted = nonce + AESGCM(key2).encrypt(nonce, original, b"") + salt
+            with open(f"{i}.pyfv", 'wb+') as file: file.write(encrypted)
+            os.remove(i)
     mb.showinfo("PyFileVault", "Encryption complete.")
 
 def pyv_dec(filez, key):
