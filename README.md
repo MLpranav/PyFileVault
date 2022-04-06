@@ -11,6 +11,7 @@ Original files will be deleted on encryption, be careful!
 Program can be run directly using the `exe` file or alternatively via the `py` file (`crypography` module needed). Or you can compile the code on your own system using `compile.bat`.
 
 ## To Do
+- [ ] Filter by max size and extension.
 - [ ] Add preview files feature.
 - [ ] Add Linux and Mac support.
 - [ ] Add progress bar.
