@@ -14,5 +14,8 @@ Program can be run directly using the `exe` file or alternatively via the `py` f
 - [ ] Add preview files feature.
 - [ ] Add Linux and Mac support.
 - [ ] Add progress bar.
+- [ ] Show password button.
+- [ ] Recovery key (hash of secret key) export.
+- [ ] UI enhancements.
 
 Feel free to fix bugs/add more features and send pull requests. :D
