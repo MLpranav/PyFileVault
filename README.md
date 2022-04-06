@@ -12,6 +12,7 @@ Program can be run directly using the `exe` file or alternatively via the `py` f
 
 ## To Do
 - [ ] Filter by max size and extension.
+- [ ] Backup files to a temp location before tampering. Delete after encryption/decryption is complete.
 - [ ] Add preview files feature.
 - [ ] Add Linux and Mac support.
 - [ ] Add progress bar.
